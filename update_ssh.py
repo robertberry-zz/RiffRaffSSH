@@ -3,17 +3,44 @@
 import requests
 import collections
 import yaml
+import re
 
 HOSTS_ENDPOINT = "https://dev.riffraff.gudev.gnl/api/deployinfo"
 CONFIG_PATH = "config.yml"
+ALL_STAGES = ["PROD", "PERF", "CODE", "QA", "DEV"]
+INTERNAL_NAME_MATCHER = re.compile(r"^(ip[\d-]+)")
 
 class SSHEntry(object):
-    def __init__(self, host, host_name):
-        self.parts = (("Host", host),
-                      ("HostName", host_name))
+    def __init__(self, host, host_name, extra_params=dict()):
+        self.parts = [("Host", host),
+                      ("HostName", host_name)] + extra_params.items()
 
     def __repr__(self):
         return "\n".join(k + " " + v for k, v in self.parts)
+
+class ExtraParams(object):
+    def __init__(self, apps, stages, entries):
+        resolver = dict()
+
+        for entry in entries:
+            entry_apps = apps if entry["apps"] == "*" else entry["apps"]
+            entry_stages = stages if entry["stages"] == "*" else entry["stages"]
+
+            for app in entry_apps:
+                for stage in entry_stages:
+                    resolver[(app, stage)] = entry["params"]
+
+        self.resolver = resolver
+
+    def params_for(self, app, stage):
+        return self.resolver.get((app, stage), dict())
+
+class AppNameGenerator(object):
+    def __init__(self, rewrites):
+        self.rewrites = rewrites
+
+    def name(self, app, stage, index):
+        return self.rewrites.get(app, app) + "_" + stage.lower() + "_" + str(index + 1)
 
 class RiffRaffError(Exception): pass
 
@@ -30,16 +57,25 @@ def get_hosts(key):
     else:
         return response.json()["response"]["results"]["hosts"]
 
-def get_ssh_entries(hosts, app_name_rewrites):
+def trim_internal_name(name):
+    return INTERNAL_NAME_MATCHER.search(name).group(1)
+
+def get_ssh_entries(hosts, namer, extra_params):
     ssh_entries_by_app = collections.defaultdict(list)
 
     for h in hosts:
         ssh_entries_by_app[(h["app"], h["stage"])].append(h)
 
-    return [SSHEntry(app_name_rewrites.get(app, app) + "_" + \
-                     stage.lower() + "_" + str(i + 1), host["hostname"]) \
+    return [entry \
             for (app, stage), hosts in ssh_entries_by_app.items() \
-            for i, host in enumerate(hosts)]
+            for i, host in enumerate(hosts)
+            for entry in 
+            (SSHEntry(namer.name(app, stage, i), \
+                      host["hostname"], \
+                      extra_params.params_for(app, stage)),
+             SSHEntry(trim_internal_name(host["internalname"]), \
+                      host["hostname"], \
+                      extra_params.params_for(app, stage)))]
 
 def main():
     conf = get_config()
@@ -50,10 +86,14 @@ def main():
 
     hosts = (h for h in get_hosts(api_key) if h["app"] in apps)
 
-    ssh_entries = get_ssh_entries(hosts, conf.get("app_name_rewrites", dict()))
+    namer = AppNameGenerator(conf.get("app_name_rewrites", dict()))
+    extra_params = ExtraParams(apps, ALL_STAGES, conf.get("extra_params", list()))
+
+    ssh_entries = get_ssh_entries(hosts, namer, extra_params)
 
     for entry in ssh_entries:
         print str(entry)
+        print
 
 if __name__ == '__main__':
     main()
