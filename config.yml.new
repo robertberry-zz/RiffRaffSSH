@@ -1,0 +1,13 @@
+# Riff Raff API key
+api_key: "api key here"
+
+# The apps you want to add SSH entries for
+apps:
+  - first app name
+  - second app name
+
+# If you want to use shorter names for your apps in the SSH host, supply them here
+app_name_rewrites:
+  "first app name": "rewritten name"
+
+
