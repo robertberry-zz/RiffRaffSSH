@@ -1,8 +1,8 @@
 # Riff Raff SSH
 
 Reads hosts for the apps you want to track from Riff Raff and writes an SSH
-config file for you. Edit config.yml.new then rename it config.yml and you're
-good to go.
+config file for you to the console. Edit `config.yml.new` then rename it
+`config.yml` and you're good to go.
 
 ## config.yml
 
@@ -33,7 +33,13 @@ Later rules take precedence.
 
 ### Example config
 
-See example_config.yml.
+See `example_config.yml`.
+
+## Static config
+
+If you have a chunk of SSH config you'd like to include with the generated
+config, create a file in the script's directory called `static_config` with
+the entries. 
 
 ## Dependencies
 
