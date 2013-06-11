@@ -1,0 +1,46 @@
+# Riff Raff API key
+api_key: "put a real API key here"
+
+# The apps you want to add SSH entries for
+apps:
+  - mobile-aggregator
+  - mobile_aggregator::frontend
+  - pushy_galore
+  - ios_purchases_admin
+  - ios_purchases_api
+
+# If you want to use shorter names for your apps in the SSH host, supply them here
+app_name_rewrites:
+  "mobile-aggregator": ma
+  "mobile_aggregator::frontend": ma_squid
+
+extra_params:
+  - apps: 
+      - mobile-aggregator
+    stages:
+      - CODE
+      - QA
+    params:
+      User: devsuprt
+
+  - apps: 
+      - mobile-aggregator
+    stages:
+      - PROD
+      - PERF
+    params:
+      User: jvmuser
+
+  - apps:
+      - mobile_aggregator::frontend
+    stages: "*"
+    params:
+      User: jvmuser
+
+  - apps:
+      - ios_purchases_api
+      - ios_purchases_admin
+      - pushy_galore
+    stages: "*"
+    params:
+      User: devsuprt
