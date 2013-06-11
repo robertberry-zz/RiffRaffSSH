@@ -91,6 +91,16 @@ def main():
 
     ssh_entries = get_ssh_entries(hosts, namer, extra_params)
 
+    try:
+        with open(conf.get("static_config_path", "static_config"), "r") as static_conf:
+            print static_conf.read()
+    except IOError, e: 
+        # No static config defined
+        pass
+
+    print "# Riff Raff SSH entries"
+    print
+
     for entry in ssh_entries:
         print str(entry)
         print
