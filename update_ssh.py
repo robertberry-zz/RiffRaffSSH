@@ -5,7 +5,7 @@ import collections
 import yaml
 import re
 
-HOSTS_ENDPOINT = "https://dev.riffraff.gudev.gnl/api/deployinfo"
+HOSTS_ENDPOINT = "https://riffraff.gutools.co.uk/api/deployinfo"
 CONFIG_PATH = "config.yml"
 ALL_STAGES = ["PROD", "PERF", "CODE", "QA", "DEV"]
 INTERNAL_NAME_MATCHER = re.compile(r"^(ip[\d-]+)")
