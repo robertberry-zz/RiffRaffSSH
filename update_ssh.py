@@ -58,7 +58,12 @@ def get_hosts(key):
         return response.json()["response"]["results"]["hosts"]
 
 def trim_internal_name(name):
-    return INTERNAL_NAME_MATCHER.search(name).group(1)
+    match = INTERNAL_NAME_MATCHER.search(name)
+
+    if match:
+        return match.group(1)
+    else:
+        return name
 
 def get_ssh_entries(hosts, namer, extra_params):
     ssh_entries_by_app = collections.defaultdict(list)
